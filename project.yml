@@ -1,0 +1,120 @@
+###########
+## Project 
+###########
+name: MyProjectName
+
+############
+## Options
+############
+
+## Here we can override some project properties
+
+options:
+
+  # You can define here more like tvOS etc but in this particular case I will be use iOS. only.
+  deploymentTarget:
+    iOS: "18.0"
+
+############
+# Settings
+############
+
+settings:
+  MARKETING_VERSION: "0.0.1"
+  CURRENT_PROJECT_VERSION: "1"
+
+############
+## Targets
+############
+
+# Lets define our targets. We will have
+# - An app target
+# - A service package
+# - A test target for this service package
+
+targets:
+
+  # Name for our service package
+  ServiceCore:
+    type: framework # this package its a framework
+    platform: iOS   # for iOS only
+
+    # configure bundle and info.plist
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: "com.myapp.core.service"
+      INFOPLIST_FILE: service/Info.plist
+
+    # Point where the service core sources are. Support wildcards and "exclude" options.
+    # we use path and group keys to generate a refence folder name "ServiceCore"
+    # where all files related with ServiceCore will be added
+    sources:
+      - path: core/service/sources
+        group: Modules/ServiceCore
+      - path: core/service/resources
+        group: Modules/ServiceCore
+        
+    # Set our dependencies from external libraries
+    dependencies:
+      - package: SwiftAlgorithms
+
+    # Link with its target
+    scheme:
+      gatherCoverageData: true
+      testTargets:
+        - name: ServiceCore_Tests
+          parallelizable: true
+          randomExecutionOrder: true
+
+  # Name for our test core package
+  ServiceCore_Tests:
+    type: bundle.unit-test
+    platform: iOS
+    settings:
+      INFOPLIST_FILE: service/ServiceCoreTests-Info.plist
+    sources:
+      - path: core/service/tests
+        group: Modules/ServiceCore
+
+    # Link with ServiceCore target
+    dependencies:
+      - target: ServiceCore
+      
+    # Create a new scheme that will be linked and configured for test purposes 
+    scheme:
+      gatherCoverageData: true
+      testTargets:
+        - name: ServiceCore_Tests
+          parallelizable: true
+          randomExecutionOrder: true
+
+  # Name for our app target
+  MyApp:
+    type: application 
+    platform: iOS    # choose destination platform
+    deploymentTarget: 16.0
+    sources:
+      # Where app files will be found.
+      - path: app/sources
+        group: app
+    settings:
+      # Select the bundle identifier
+      PRODUCT_BUNDLE_IDENTIFIER: "com.myapp.xcodegen"
+      # Select where Info.plist will be found
+      INFOPLIST_FILE: app/Info.plist
+    dependencies:
+      # Dependencies. Here only local one (ServiceCore)
+      - target: ServiceCore
+    entitlements:
+      path: app/Debug.entitlements
+      properties:
+        com.apple.security.application-groups: group.com.myapp
+
+############
+## Packages
+############
+
+# Define the Swift Package Manager external libraries that the app will use
+packages:
+  SwiftAlgorithms:
+    url: https://github.com/apple/swift-algorithms
+    exactVersion: 1.2.0
