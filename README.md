@@ -1,4 +1,5 @@
 # xcodegen-showcase
+The basic setup of using XcodeGen command line tool was created for a need of the following article https://haker.dev/2025/01/11/XcodeGen-introduction.html
 
 # Setup
 
